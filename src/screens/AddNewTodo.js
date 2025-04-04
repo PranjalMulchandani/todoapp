@@ -1,33 +1,86 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-
+import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export const AddNewTodo = () => {
   const navigation = useNavigation();
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+
+  const titleHandler = (text) => {
+    setTitle(text);
+  };
+  const descriptionHandler = (text) => {
+    setDescription(text);
+  };
+  const clear = () => {
+    setTitle("");
+    setDescription("");
+  };
+  const saveTodo = async (todo) => {
+    try {
+      const todos = await AsyncStorage.getItem("todos");
+      let newTodos = [];
+      if (todos) {
+        newTodos = JSON.parse(todos);
+      }
+      newTodos.push(todo);
+      await AsyncStorage.setItem("todos", JSON.stringify(newTodos));
+      Alert.alert("Todo Added Successfully.");
+      clear();
+    } catch (error) {
+      Alert.alert("Error saving todo", error.message);
+    }
+  };
+  const saveHandler = () => {
+    if (title.trim() === "" || description.trim() === "") {
+      Alert.alert(
+        "Both fields must not be empty for the todo to be successfully added."
+      );
+      return;
+    }
+    const newTodo = {
+      id: new Date().getTime(),
+      title: title,
+      description: description,
+      finished: false,
+      expanded: false,
+    };
+    saveTodo(newTodo);
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Add New Todo</Text>
       <View style={styles.divider}></View>
       <View style={styles.txtContainer}>
         <Text style={styles.txtStyle}>Title</Text>
-        <TextInput style={styles.inputStyle} placeholder="Title" />
+        <TextInput
+          style={styles.inputStyle}
+          placeholder="Title"
+          value={title}
+          onChangeText={titleHandler}
+        />
         <Text style={styles.txtStyle}>Description</Text>
         <TextInput
           style={[styles.inputDesStyle]}
           placeholder="Description"
           multiline={true}
           numberOfLines={5}
+          value={description}
+          onChangeText={descriptionHandler}
         />
       </View>
       <View style={styles.button}>
         <Pressable onPress={() => navigation.navigate("HomeScreen")}>
           <View style={styles.btnContainer}>
             <Ionicons name="close-circle-sharp" size={20} color="green" />
-            <Text style={styles.btnText}>Cancel</Text>
+            <Text style={styles.btnText}>Back</Text>
           </View>
         </Pressable>
-        <Pressable onPress={() => navigation.navigate("AddNewTodo")}>
+        <Pressable onPress={saveHandler}>
           <View style={styles.btnContainer}>
             <Ionicons name="save-sharp" size={20} color="green" />
             <Text style={styles.btnText}>Save</Text>

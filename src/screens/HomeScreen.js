@@ -1,18 +1,104 @@
-import React from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
+
+  const [todos, setTodos] = useState([]);
+
+  useEffect(() => {
+    const loadTodos = async () => {
+      try {
+        const storedTodos = await AsyncStorage.getItem("todos");
+        if (storedTodos) {
+          setTodos(JSON.parse(storedTodos));
+        }
+      } catch (error) {
+        console.error("Error loading todos", error);
+      }
+    };
+
+    loadTodos();
+  }, []);
+  const saveTodos = async (newTodos) => {
+    try {
+      await AsyncStorage.setItem("todos", JSON.stringify(newTodos));
+    } catch (error) {
+      console.error("Error saving todos", error);
+    }
+  };
+  const deleteTodo = async (id) => {
+    const newTodos = todos.filter((todo) => todo.id !== id);
+    setTodos(newTodos);
+    await saveTodos(newTodos);
+  };
+  const finishTodo = (id) => {
+    const newTodos = todos.map((todo) => {
+      if (todo.id === id) {
+        return { ...todo, finished: true };
+      }
+      return todo;
+    });
+    setTodos(newTodos);
+    saveTodos(newTodos);
+  };
+  const expandTodo = (id) => {
+    const newTodos = todos.map((todo) => {
+      if (todo.id === id) {
+        return { ...todo, expanded: !todo.expanded };
+      }
+      return todo;
+    });
+    setTodos(newTodos);
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Todo List</Text>
       <View style={styles.divider}></View>
-      <View style={styles.todos}>
-        <Text style={styles.item}>Buy milk</Text>
-        <Text style={styles.item}>Buy bread</Text>
-        <Text style={styles.item}>Buy eggs</Text>
+      <View style={styles.list}>
+        <FlatList
+          data={todos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.listContainer}>
+              <View style={styles.listTopContainer}>
+                <Text style={styles.listTitle}>{item.title}</Text>
+                <Pressable onPress={expandTodo.bind(this, item.id)}>
+                  <Ionicons
+                    name={item.expanded ? "caret-up" : "caret-down"}
+                    size={20}
+                    color="green"
+                  />
+                </Pressable>
+              </View>
+              {item.expanded && (
+                <View style={styles.expanded}>
+                  <Text style={styles.listDescription}>{item.description}</Text>
+                  <View style={styles.listActions}>
+                    {!item.finished && (
+                      <Pressable onPress={finishTodo.bind(this, item.id)}>
+                        <Ionicons name="cloud-done" size={20} color="green" />
+                      </Pressable>
+                    )}
+                    <Pressable onPress={deleteTodo.bind(this, item.id)}>
+                      <Ionicons name="trash" size={20} color="red" />
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+        />
       </View>
       <View style={styles.button}>
         {/* <Button
@@ -54,7 +140,7 @@ const styles = StyleSheet.create({
   button: {
     width: "80%",
     borderTopWidth: 1,
-    borderBottomColor: "#000",
+    borderBottomColor: "black",
     paddingTop: 15,
     position: "absolute",
     bottom: 15,
@@ -62,7 +148,7 @@ const styles = StyleSheet.create({
   divider: {
     width: "80%",
     borderBottomWidth: 1,
-    borderBottomColor: "#000",
+    borderBottomColor: "black",
     marginBottom: 25,
   },
   btnContainer: {
@@ -78,5 +164,32 @@ const styles = StyleSheet.create({
   btnText: {
     color: "black",
     fontWeight: "bold",
+  },
+  listContainer: {
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: "skyblue",
+    marginVertical: 10,
+  },
+  listTopContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  listTitle: {
+    fontSize: 14,
+  },
+  listDescription: {
+    fontSize: 14,
+    color: "black",
+  },
+  listActions: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+  },
+  list: {
+    width: "80%",
+    flexGrow: 1,
+    height: 60,
+    marginBottom: 100,
   },
 });
