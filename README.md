@@ -52,20 +52,3 @@ expo start
 3. Launch on a device or simulator using Expo Go or the provided npm scripts (e.g., `npm run android`).
 
 Notes: The project uses Expo (see `package.json` scripts). Ensure `expo` CLI is installed globally if you plan to run `expo start` directly.
-
-## Suggested resume bullets
-
-- Built a cross-platform mobile Todo app using React Native and Expo with local persistence via AsyncStorage.
-- Implemented navigation and multi-screen flow using React Navigation (stack navigator).
-- Added CRUD features (create, read, update/finish, delete) with persistent storage and a clean, minimal UI.
-- Used community libraries including `react-native-vector-icons` and `@react-native-async-storage/async-storage`.
-
-## Notes / Next steps (optional)
-
-- Add unit tests and E2E tests for screens and storage logic.
-- Introduce TypeScript for improved maintainability.
-- Sync with a backend (optional) to add multi-device sync or user accounts.
-
----
-
-If you want, I can tailor the resume bullets (short vs. detailed) or add a one-line project blurb specifically phrased for a CV header.
